@@ -498,7 +498,7 @@ class RealmTest(ZulipTestCase):
         self.assertEqual(result, realm.rendered_description)
         self.assertIn("<strong>formatting</strong>", result)
 
-        # Test 4: Empty description uses defaut
+        # Test 4: Empty description uses default
         do_set_realm_property(
             realm,
             "description",

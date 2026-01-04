@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("zerver", "0768_realmauditlog_scrubbed"),
+        ("zerver", "0771_alter_realmemoji_author"),
     ]
 
     operations = [
