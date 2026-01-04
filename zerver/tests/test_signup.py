@@ -1214,7 +1214,8 @@ class LoginTest(ZulipTestCase):
         realm = get_realm("zulip")
         description = "https://www.google.com/images/srpr/logo4w.png"
         realm.description = description
-        realm.save(update_fields=["description"])
+        realm.rendered_description = None
+        realm.save(update_fields=["description", "rendered_description"])
         response: HttpResponseBase = self.client_get("/login/")
         expected_response = """<p><a href="https://www.google.com/images/srpr/logo4w.png">\
 https://www.google.com/images/srpr/logo4w.png</a></p>"""

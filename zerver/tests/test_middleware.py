@@ -130,7 +130,8 @@ class OpenGraphTest(ZulipTestCase):
             "Enjoy!"
         )
         realm.description = description
-        realm.save(update_fields=["description"])
+        realm.rendered_description = None
+        realm.save(update_fields=["description", "rendered_description"])
 
         self.check_title_and_description(
             "/login/",

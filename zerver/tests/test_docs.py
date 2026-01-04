@@ -361,13 +361,15 @@ class DocPageTest(ZulipTestCase):
         realm.save()
 
         realm.description = ""
-        realm.save()
+        realm.rendered_description = None
+        realm.save(update_fields=["description", "rendered_description"])
         result = self.client_get("/communities/")
         # Not shown because the realm has default description set.
         self.assert_not_in_success_response(["Zulip Dev"], result)
 
         realm.description = "Some description"
-        realm.save()
+        realm.rendered_description = None
+        realm.save(update_fields=["description", "rendered_description"])
         self._test("/communities/", ["Open communities directory", "Zulip Dev", "Some description"])
 
         # No org with research type so research category not displayed.

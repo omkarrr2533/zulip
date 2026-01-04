@@ -202,7 +202,16 @@ def do_create_realm(
     if emails_restricted_to_domains is not None:
         kwargs["emails_restricted_to_domains"] = emails_restricted_to_domains
     if description is not None:
+        from zerver.lib.markdown import markdown_convert
+
         kwargs["description"] = description
+        # Render and cache the description
+        description_to_render = description or "The coolest place in the universe."
+        kwargs["rendered_description"] = markdown_convert(
+            description_to_render,
+            message_realm=None,  # Realm doesn't exist yet
+            no_previews=True,
+        ).rendered_content
     if invite_required is not None:
         kwargs["invite_required"] = invite_required
     if plan_type is not None:

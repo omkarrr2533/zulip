@@ -85,7 +85,21 @@ def do_set_realm_property(
         return
 
     setattr(realm, name, value)
-    realm.save(update_fields=[name])
+
+    # Special handling for description to cache rendered content
+    if name == "description":
+        from zerver.lib.markdown import markdown_convert
+
+        # Use default text if description is empty
+        description_to_render = value or "The coolest place in the universe."
+        realm.rendered_description = markdown_convert(
+            description_to_render,
+            message_realm=realm,
+            no_previews=True,
+        ).rendered_content
+        realm.save(update_fields=[name, "rendered_description"])
+    else:
+        realm.save(update_fields=[name])
 
     event = dict(
         type="realm",

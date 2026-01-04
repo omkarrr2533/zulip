@@ -441,16 +441,75 @@ class RealmTest(ZulipTestCase):
         rendered_description = get_realm_rendered_description(realm)
         text_description = get_realm_text_description(realm)
 
-        realm.description = "New description"
-        realm.save(update_fields=["description"])
+        do_set_realm_property(
+            realm, "description", "New description", acting_user=self.example_user("iago")
+        )
 
+        realm.refresh_from_db()
         new_rendered_description = get_realm_rendered_description(realm)
         self.assertNotEqual(rendered_description, new_rendered_description)
         self.assertIn(realm.description, new_rendered_description)
-
         new_text_description = get_realm_text_description(realm)
         self.assertNotEqual(text_description, new_text_description)
         self.assertEqual(realm.description, new_text_description)
+
+    def test_realm_description_caching(self) -> None:
+        """Test that realm descriptions are properly cached in the database."""
+        realm = get_realm("zulip")
+
+        # Test 1: Setting description through do_set_realm_property caches it
+        new_description = (
+            "# Test Description\n\nWith **formatting** and a [link](https://example.com)"
+        )
+        do_set_realm_property(
+            realm,
+            "description",
+            new_description,
+            acting_user=self.example_user("iago"),
+        )
+
+        # Verify rendered_description is cached in database
+        realm.refresh_from_db()
+        rendered_desc = realm.rendered_description
+        self.assertIsNotNone(rendered_desc)
+        assert rendered_desc is not None  # Type narrowing for mypy
+        self.assertIn("<strong>formatting</strong>", rendered_desc)
+        self.assertNotIn("**formatting**", rendered_desc)
+        self.assertIn("<h1>Test Description</h1>", rendered_desc)
+        self.assertIn('<a href="https://example.com"', rendered_desc)
+
+        # Test 2: get_realm_rendered_description return cached version
+        cached_result = get_realm_rendered_description(realm)
+        self.assertEqual(cached_result, rendered_desc)
+
+        # Test 3: Cache miss scenario rendered_description is None
+        realm.rendered_description = None
+        realm.save(update_fields=["rendered_description"])
+        # Clear the cache to force re-rendering
+        from zerver.lib.cache import cache_delete, realm_rendered_description_cache_key
+
+        cache_delete(realm_rendered_description_cache_key(realm))
+
+        result = get_realm_rendered_description(realm)
+
+        # Verify it was rendered and cached
+        realm.refresh_from_db()
+        self.assertIsNotNone(realm.rendered_description)
+        self.assertEqual(result, realm.rendered_description)
+        self.assertIn("<strong>formatting</strong>", result)
+
+        # Test 4: Empty description uses defaut
+        do_set_realm_property(
+            realm,
+            "description",
+            "",
+            acting_user=self.example_user("iago"),
+        )
+
+        realm.refresh_from_db()
+        self.assertIsNotNone(realm.rendered_description)
+        # We know rendered_description is not None after assertIsNotNone
+        self.assertIn("coolest place in the universe", str(realm.rendered_description))
 
     def test_do_deactivate_realm_on_deactivated_realm(self) -> None:
         """Ensure early exit is working in realm deactivation"""
