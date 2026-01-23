@@ -3,7 +3,7 @@
 import $ from "jquery";
 import _ from "lodash";
 import assert from "minimalistic-assert";
-import type * as tippy from "tippy.js";
+import * as tippy from "tippy.js";
 
 import render_inline_decorated_channel_name from "../templates/inline_decorated_channel_name.hbs";
 
@@ -19,16 +19,21 @@ import * as dropdown_widget from "./dropdown_widget.ts";
 import type {DropdownWidget, Option} from "./dropdown_widget.ts";
 import {$t} from "./i18n.ts";
 import * as narrow_state from "./narrow_state.ts";
+// eslint-disable-next-line import/no-cycle
+import * as onboarding_steps from "./onboarding_steps.ts";
 import {realm} from "./state_data.ts";
 import * as stream_color from "./stream_color.ts";
 import * as stream_data from "./stream_data.ts";
 import * as ui_util from "./ui_util.ts";
+import {parse_html} from "./ui_util.ts";
 import * as user_groups from "./user_groups.ts";
 import * as util from "./util.ts";
+import {the} from "./util.ts";
 
 type MessageType = "stream" | "private";
 
 let compose_select_recipient_dropdown_widget: DropdownWidget;
+let go_to_conversation_intro_tooltip_instance: tippy.Instance | null = null;
 
 function composing_to_current_topic_narrow(): boolean {
     // If the narrow state's stream ID or topic is undefined, then
@@ -337,6 +342,44 @@ export function handle_middle_pane_transition(): void {
         update_narrow_to_recipient_visibility();
         update_recipient_row_attention_level();
     }
+}
+
+export function hide_go_to_conversation_button_intro_tooltip(): void {
+    if (go_to_conversation_intro_tooltip_instance !== null) {
+        go_to_conversation_intro_tooltip_instance.destroy();
+        go_to_conversation_intro_tooltip_instance = null;
+    }
+}
+
+export function show_go_to_conversation_button_intro_tooltip(): void {
+    // Check preconditions BEFORE showing
+    if (
+        !$(".conversation-arrow").hasClass("narrow_to_compose_recipients") ||
+        $("#compose_banners .main-view-banner").length > 0
+    ) {
+        return;
+    }
+
+    hide_go_to_conversation_button_intro_tooltip();
+
+    const element = the($(".conversation-arrow"));
+    go_to_conversation_intro_tooltip_instance = tippy.default(element, {
+        trigger: "manual",
+        placement: "top",
+        appendTo: document.body,
+        content: parse_html(
+            $("#onboarding_compose_go_to_conversation_button_tooltip_template").html(),
+        ),
+        onHidden(instance) {
+            instance.destroy();
+            go_to_conversation_intro_tooltip_instance = null;
+            onboarding_steps.post_onboarding_step_as_read(
+                "intro_go_to_conversation_button_tooltip",
+            );
+        },
+    });
+
+    go_to_conversation_intro_tooltip_instance.show();
 }
 
 export function initialize(): void {

@@ -270,6 +270,11 @@ test_ui("send_message_success", ({override, override_rewire}) => {
 
 test_ui("send_message", ({override, override_rewire, mock_template}) => {
     mock_banners();
+    override(
+        onboarding_steps,
+        "ONE_TIME_NOTICES_TO_DISPLAY",
+        new Set(["intro_go_to_conversation_button_tooltip"]),
+    );
     MockDate.set(new Date(fake_now * 1000));
     override_rewire(drafts, "sync_count", noop);
 
@@ -632,6 +637,11 @@ test_ui("initialize", ({override}) => {
 
 test_ui("update_fade", ({override, override_rewire}) => {
     mock_banners();
+    override(
+        onboarding_steps,
+        "ONE_TIME_NOTICES_TO_DISPLAY",
+        new Set(["intro_go_to_conversation_button_tooltip"]),
+    );
     initialize_handlers({override});
 
     let set_focused_recipient_checked = false;
@@ -691,7 +701,11 @@ test_ui("trigger_submit_compose_form", ({override, override_rewire}) => {
 
 test_ui("on_events", ({override, override_rewire}) => {
     initialize_handlers({override});
-
+    override(
+        onboarding_steps,
+        "ONE_TIME_NOTICES_TO_DISPLAY",
+        new Set(["intro_go_to_conversation_button_tooltip"]),
+    );
     override(rendered_markdown, "update_elements", noop);
 
     const fake_compose_box = new FakeComposeBox();

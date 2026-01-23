@@ -617,6 +617,15 @@ export function initialize(): void {
         } else {
             compose_notifications.maybe_show_one_time_interleaved_view_messages_fading_banner();
         }
+        setTimeout(() => {
+            if (
+                onboarding_steps.ONE_TIME_NOTICES_TO_DISPLAY.has(
+                    "intro_go_to_conversation_button_tooltip",
+                )
+            ) {
+                compose_recipient.show_go_to_conversation_button_intro_tooltip();
+            }
+        }, 0);
     });
 
     $(".compose-scrollable-buttons").on(
