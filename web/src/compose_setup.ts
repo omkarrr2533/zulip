@@ -617,15 +617,6 @@ export function initialize(): void {
         } else {
             compose_notifications.maybe_show_one_time_interleaved_view_messages_fading_banner();
         }
-        setTimeout(() => {
-            if (
-                onboarding_steps.ONE_TIME_NOTICES_TO_DISPLAY.has(
-                    "intro_go_to_conversation_button_tooltip",
-                )
-            ) {
-                compose_recipient.show_go_to_conversation_button_intro_tooltip();
-            }
-        }, 0);
     });
 
     $(".compose-scrollable-buttons").on(
@@ -725,6 +716,10 @@ export function initialize(): void {
             $compose_recipient.removeClass("recently-focused");
         }, 500);
         compose_recipient.update_recipient_row_attention_level();
+        // Show one-time tooltip when user confirms topic change
+        setTimeout(() => {
+            compose_recipient.show_go_to_conversation_button_intro_tooltip();
+        }, 0);
     });
 
     $(window).on("blur", () => {

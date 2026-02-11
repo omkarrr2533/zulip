@@ -352,6 +352,13 @@ export function hide_go_to_conversation_button_intro_tooltip(): void {
 }
 
 export function show_go_to_conversation_button_intro_tooltip(): void {
+    // Only show if onboarding step not completed
+    if (
+        !onboarding_steps.ONE_TIME_NOTICES_TO_DISPLAY.has("intro_go_to_conversation_button_tooltip")
+    ) {
+        return;
+    }
+
     // Check preconditions BEFORE showing
     if (
         !$(".conversation-arrow").hasClass("narrow_to_compose_recipients") ||
